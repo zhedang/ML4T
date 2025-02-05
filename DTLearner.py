@@ -1,44 +1,47 @@
 import numpy as np
-import math
 class DTLearner(object):
     def __init__(self, leaf_size=1, verbose=False):
         self.leaf_size = leaf_size
         self.verbose = verbose
-        self.tree=None
+
     def author(self):
         return "zdang31"
     def study_group(self):
-        return "zdang31"
-
-    def build_tree(self,data):
-        if data.shape[0] <= self.leaf_size:
-            return np.atleast_2d(np.array(["leaf", np.mean(data[:, -1]), np.nan, np.nan],dtype=object))  # 2d fix the one row issue
-        elif len(np.unique(data[:, -1])) == 1:
-            return np.atleast_2d(np.array(["leaf", data[0, -1], np.nan, np.nan],dtype=object))
+        return "zdang31" 
+        
+    def add_evidence(self, data_x, data_y):
+        # end recursion when reaching leaf size
+        if data_x.shape[0] <= self.leaf_size:
+            # 2d fix shape issue. otherwise, (3,) instead of (3,1) will cause mistake for right tree calculation
+            return np.atleast_2d(np.array(["leaf", np.mean(data_y), np.nan, np.nan],dtype=object))  
+        # end recursion when all values are same
+        elif len(np.unique(data_y)) == 1:
+            return np.atleast_2d(np.array(["leaf", data_y[0], np.nan, np.nan],dtype=object))
         else:
-            # use if to prevent cases that whole column values are same
-            corr = np.array([np.corrcoef(data[:, i], data[:, -1])[0, 1] if np.std(data[:, i]) > 0 else 0 for i in range(data.shape[1] - 1)])
-            max_corr = np.where(np.isclose(np.abs(corr), np.max(np.abs(corr))))[0]  # isclose to fix index float point issue
+            #compare correlation between each column in data_x and data_y. (using if to avoid that all values in a column are same )
+            corr = np.array([np.corrcoef(data_x[:, i], data_y)[0, 1] if np.std(data_x[:, i]) > 0 else 0 for i in range(data_x.shape[1])])
+            #get max correlation. (isclose to fix index float point issue, otherwise, some feature with correlation of 0.9999 will be ignored)
+            max_corr = np.where(np.isclose(np.abs(corr), np.max(np.abs(corr))))[0]
+            #selet max correlation column as feature
             if len(max_corr) > 1:
                 index = max_corr[0]
             else:
                 index = np.argmax(np.abs(corr))
-            split_value = np.median(data[:, index])
-            # without check, recursion error
-            left_data = data[data[:, index] <= split_value]
-            right_data = data[data[:, index] > split_value]
-
-            if left_data.shape[0] == 0 or right_data.shape[0] == 0:
-                return np.atleast_2d(np.array(["leaf", np.mean(data[:, -1]), np.nan, np.nan], dtype=object))
-            left_tree = self.build_tree(left_data)
-            right_tree = self.build_tree(right_data)
+            #using median of selected column as split value.
+            split_value = np.median(data_x[:, index])
+            
+            left_indices= data_x[:, index] <= split_value
+            right_indices= data_x[:, index] > split_value
+            left_data_x= data_x[left_indices]
+            left_data_y=data_y[left_indices]
+            right_data_x=data_x[right_indices]
+            right_data_y=data_y[right_indices]
+          
+            left_tree = self.add_evidence(left_data_x,left_data_y)
+            right_tree = self.add_evidence(right_data_x,right_data_y)
             root = np.array([index, split_value, 1, left_tree.shape[0] + 1],dtype=object)
-            decision_tree = np.vstack((root, left_tree, right_tree))
-            return decision_tree
-        
-    def add_evidence(self, data_x, data_y):
-        data=np.hstack((data_x,data_y.reshape(-1, 1))) # make Ytrain 2d
-        self.tree = self.build_tree(data)
+            self.tree = np.vstack((root, left_tree, right_tree))
+        return self.tree
     def query(self, points):
         arr=np.array([])
         for i in range(points.shape[0]):
@@ -54,6 +57,7 @@ class DTLearner(object):
         return arr
 
 # ✅ Run Model on Istanbul Data
+import math
 if __name__ == "__main__":
     # Load CSV Data
     filename = "Data/Istanbul.csv"  # Adjust the path if needed
