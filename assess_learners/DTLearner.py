@@ -19,7 +19,7 @@ class DTLearner(object):
         elif len(np.unique(data_y)) == 1:
             tree= np.atleast_2d(np.array(["leaf", data_y[0], np.nan, np.nan],dtype=object))
         else:
-            #compare correlation between each column in data_x and data_y. (using if to avoid that all values in a column are same )
+            #compare correlation between each column in data_x and data_y. handling the constant and avoiding nan
             corr = np.array([np.corrcoef(data_x[:, i], data_y)[0, 1] if np.std(data_x[:, i]) > 0 else 0 for i in range(data_x.shape[1])])
             #get max correlation. (isclose to fix index float point issue, otherwise, some feature with correlation of 0.9999 will be ignored)
             max_corr = np.where(np.isclose(np.abs(corr), np.max(np.abs(corr))))[0]
@@ -37,7 +37,7 @@ class DTLearner(object):
             left_data_y=data_y[left_indices]
             right_data_x=data_x[right_indices]
             right_data_y=data_y[right_indices]
-            # prevent edge case for example [1,2,2].
+            # prevent edge case for empty tree
             if left_data_x.shape[0] ==0 or right_data_x.shape[0] == 0:
                 tree= np.atleast_2d(np.array(["leaf", np.mean(data_y), np.nan, np.nan], dtype=object))
             else:
@@ -48,7 +48,7 @@ class DTLearner(object):
         self.tree = tree
         return tree
     def query(self, points):
-        arr=np.array([])
+        arr = np.zeros(points.shape[0])
         for i in range(points.shape[0]):
             node=0
             while self.tree[node][0]!="leaf":
@@ -57,15 +57,5 @@ class DTLearner(object):
                 else:
                     node+=self.tree[node][3]
                 node=int(node)
-            y=self.tree[node][1]
-            arr=np.append(arr,y)
+            arr[i]=self.tree[node][1]
         return arr
-
-# ✅ Run Model on Istanbul Data
-import math
-if __name__ == "__main__":
-    filename = "assess_learners/Data/simple.csv"
-    data = np.genfromtxt(filename, delimiter=",")
-    dt = DTLearner(verbose=False)
-    dt.add_evidence(data[:,:-1], data[:,-1])
-    print(dt.query(data[:,:-1]))

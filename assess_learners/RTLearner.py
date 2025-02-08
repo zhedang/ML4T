@@ -20,6 +20,9 @@ class RTLearner(object):
         # end recursion when all values are same
         elif len(np.unique(data_y)) == 1:
             tree = np.atleast_2d(np.array(["leaf", data_y[0], np.nan, np.nan], dtype=object))
+        # dnd recursion if all features are constant
+        elif np.all(np.std(data_x, axis=0) == 0):
+            tree = np.atleast_2d(np.array(["leaf", np.mean(data_y), np.nan, np.nan], dtype=object))
         else:
             # randomly select a feature
             index= np.random.randint(0,data_x.shape[1])
@@ -32,7 +35,7 @@ class RTLearner(object):
             left_data_y = data_y[left_indices]
             right_data_x = data_x[right_indices]
             right_data_y = data_y[right_indices]
-            # prevent edge case for example [1,2,2].
+            # prevent edge case for empty tree
             if left_data_x.shape[0] == 0 or right_data_x.shape[0] == 0:
                 tree = np.atleast_2d(np.array(["leaf", np.mean(data_y), np.nan, np.nan], dtype=object))
             else:
@@ -44,57 +47,17 @@ class RTLearner(object):
         return tree
 
     def query(self, points):
-        arr = np.array([])
+        arr = np.zeros(points.shape[0])
         for i in range(points.shape[0]):
-            node = 0
-            while self.tree[node][0] != "leaf":
-                if points[i][int(self.tree[node][0])] <= self.tree[node][1]:
-                    node += 1
+            node=0
+            while self.tree[node][0]!="leaf":
+                if points[i][int(self.tree[node][0])]<=self.tree[node][1]:
+                    node+=1
                 else:
-                    node += self.tree[node][3]
-                node = int(node)
-            y = self.tree[node][1]
-            arr = np.append(arr, y)
+                    node+=self.tree[node][3]
+                node=int(node)
+            arr[i]=self.tree[node][1]
         return arr
 
 
-# ✅ Run Model on Istanbul Data
-import numpy as np
-import RTLearner as rt
-
-if __name__ == "__main__":
-    # Load CSV Data
-    filename = "Data/winequality-white.csv"  # Adjust the path if needed
-    data = np.genfromtxt(filename, delimiter=",", skip_header=1)[:, :]  # Skip Date column
-
-    # Set seed for reproducibility
-    np.random.seed(1481090001)
-
-    # Shuffle data indices
-    permutation = np.random.permutation(data.shape[0])
-    data = data[permutation]
-
-    # Split data into train (60%) and test (40%)
-    cutoff = int(0.6 * data.shape[0])
-    train_x, test_x = data[:cutoff, :-1], data[cutoff:, :-1]  # Features
-    train_y, test_y = data[:cutoff, -1], data[cutoff:, -1]  # Target
-
-    # Train RTLearner
-    learner = rt.RTLearner(leaf_size=1, verbose=False)
-    learner.add_evidence(train_x, train_y)
-
-    # In-sample prediction
-    pred_y_train = learner.query(train_x)
-
-    # Compute correlation
-    correlation = np.corrcoef(pred_y_train, train_y)[0, 1]
-
-    # Output result
-    print(f"In-sample correlation with leaf_size=1: {correlation:.6f}")
-
-    # Validate against the required threshold
-    if correlation >= 0.95:
-        print("Test Passed: In-sample correlation meets the requirement.")
-    else:
-        print("Test Failed: In-sample correlation is below the required 0.95 threshold.")
 

@@ -1,5 +1,5 @@
 import numpy as np 
-import BagLearner_ as bl
+import BagLearner as bl
 import LinRegLearner as lrl
 class InsaneLearner(object):
     def __init__(self,verbose=False):
@@ -11,7 +11,3 @@ class InsaneLearner(object):
     def query(self,points):
         predictions = np.array([learner.query(points) for learner in self.learners])
         return np.mean(predictions, axis=0)
-
-    
-if __name__ == "__main__":
-    print("the secret clue is 'zzyzx'")
