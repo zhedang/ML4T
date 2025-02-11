@@ -10,6 +10,10 @@ class BagLearner(object):
         self.verbose = verbose
         self.kwargs = kwargs
         self.learners = [learner(**kwargs) for i in range(bags)]
+    def author(self):
+        return "zdang31"
+    def study_group(self):
+        return "zdang31"
 
     def add_evidence(self, data_x, data_y):
         #keep the number of rows in the bag data
@@ -18,12 +22,6 @@ class BagLearner(object):
         for learner in self.learners:
             indices = np.random.choice(num_rows, size=num_rows,replace=True)
             learner.add_evidence(data_x[indices], data_y[indices])
-
-    def author(self):
-        return "zdang31"
-
-    def study_group(self):
-        return "zdang31"
 
     def query(self, points):
         predictions = np.array([learner.query(points) for learner in self.learners])
