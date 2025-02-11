@@ -81,13 +81,13 @@ if __name__ == "__main__":
 
     plt.figure(figsize=(8, 5))
     plt.plot(np.arange(1,51), in_and_out_rmse[:, 0], label="In-Sample RMSE")
-    plt.plot(np.arange(1,51), in_and_out_rmse[:, 1], label="Out-Sample RMSE")
+    plt.plot(np.arange(1,51), in_and_out_rmse[:, 1], label="Out-of-Sample RMSE")
     plt.xlabel("Leaf Size")
     plt.ylabel("RMSE")
-    plt.title("Effect of Leaf Size on Overfitting")
+    plt.title("Experiment 1: Effect of Leaf Size on In-Sample and Out-of-Sample RMSE")
     plt.legend()
     plt.grid(True)
-    plt.savefig("chart1.png")
+    plt.savefig("Figure1.png")
 
 
     """
@@ -106,25 +106,36 @@ if __name__ == "__main__":
         return np.array([dt_rmse,bl_rmse])
     
     rmse_dt_bag=np.array([dt_bag_rmse(i+1,train_x,train_y,test_x,test_y) for i in range(50)])
+
+    bl_learners=np.array([bl.BagLearner(learner=dt.DTLearner,kwargs={"leaf_size":i},bags=20) for i in range(50)])
+    in_and_out_bl_rmse = np.array([rmse(learner, train_x, train_y, test_x, test_y) for learner in bl_learners])
     
     plt.figure(figsize=(8, 5))
-    plt.plot(np.arange(1,51), rmse_dt_bag[:, 0], label="DT RMSE")
-    plt.plot(np.arange(1,51), rmse_dt_bag[:, 1], label="20 bags DT RMSE")
+    plt.plot(np.arange(1,51), rmse_dt_bag[:, 0], label="Single Decision Tree RMSE")
+    plt.plot(np.arange(1,51), rmse_dt_bag[:, 1], label="Bagged Decision Trees (20 Bags) RMSE")
     plt.xlabel("Leaf Size")
     plt.ylabel("RMSE")
-    plt.title("Impact of Bagging on Overfitting in Decision Trees")
+    plt.title("Experiment 2a: Bagging on Out-of-Sample Performance in Decision Trees")
     plt.legend()
     plt.grid(True)
-    plt.savefig("chart2.png")
+    plt.savefig("Figure2.png")
+
+    plt.figure(figsize=(8, 5))
+    plt.plot(np.arange(1,51), in_and_out_bl_rmse[:, 0], label="Bagged Trees (20 Bags) - In-Sample")
+    plt.plot(np.arange(1,51), in_and_out_bl_rmse[:, 1], label="Bagged Trees (20 Bags) - Out-of-Sample")
+    plt.xlabel("Leaf Size")
+    plt.ylabel("RMSE")
+    plt.title("Experiment 2b: In-Sample vs Out-of-Sample RMSE for Bagged Decision Trees")
+    plt.legend()
+    plt.grid(True)
+    plt.savefig("Figure3.png")
 
     """
     #Experiment 3
     """
 
     MAE=np.zeros((50, 2))
-    R_Squared= np.zeros((50, 2))
     train_time=np.zeros((50, 2))
-    space=np.zeros((50, 2))
     for i in range(50):
         start_time = time.time()
         dt_learner=dt.DTLearner(leaf_size=i+1)
@@ -142,44 +153,30 @@ if __name__ == "__main__":
         dt_mae = np.mean(np.abs(test_y - dt_y_hat))
         rt_mae = np.mean(np.abs(test_y - rt_y_hat))
         MAE[i] = [dt_mae, rt_mae]
-        
-        #calculate R-Squared
-        ss_total = np.sum((test_y - np.mean(test_y)) ** 2)
-        ss_residual_dt = np.sum((test_y - dt_y_hat) ** 2)
-        dt_r2 = 1 - (ss_residual_dt / ss_total)
-        ss_residual_rt = np.sum((test_y - rt_y_hat) ** 2)
-        rt_r2 = 1 - (ss_residual_rt / ss_total)
-        R_Squared[i] = [dt_r2, rt_r2]
+        dt_mae_mean=np.mean(MAE.T[0][4:21])
+        rt_mae_mean=np.mean(MAE.T[1][4:21])
+        dt_mae_std=np.std(MAE.T[0][4:21])
+        rt_mae_std=np.std(MAE.T[1][4:21])
 
         #Keep track of training time
         train_time[i] = [dt_train_time, rt_train_time]
 
     plt.figure(figsize=(8, 5))
-    plt.plot(np.arange(1,51), MAE[:, 0], label="DT")
-    plt.plot(np.arange(1,51), MAE[:, 1], label="RT")
+    plt.plot(np.arange(1,51), MAE[:, 0], label="Decision Tree Out-of-Sample MAE")
+    plt.plot(np.arange(1,51), MAE[:, 1], label="Random Tree Out-of-Sample MAE")
     plt.xlabel("Leaf Size")
     plt.ylabel("MAE")
-    plt.title("DT vs. RT: MAE Across Leaf Sizes")
+    plt.title("Experiment 3a: Out-of-Sample MAE for DT vs. RT Across Leaf Sizes")
     plt.legend()
     plt.grid(True)
-    plt.savefig("chart3.png")
+    plt.savefig("Figure4.png")
 
     plt.figure(figsize=(8, 5))
-    plt.plot(np.arange(1,51), R_Squared[:, 0], label="DT")
-    plt.plot(np.arange(1,51), R_Squared[:, 1], label="RT")
-    plt.xlabel("Leaf Size")
-    plt.ylabel("R-Squared")
-    plt.title("DT vs. RT: R-Squared Across Leaf Sizes")
-    plt.legend()
-    plt.grid(True)
-    plt.savefig("chart4.png")
-
-    plt.figure(figsize=(8, 5))
-    plt.plot(np.arange(1,51), train_time[:, 0], label="DT")
-    plt.plot(np.arange(1,51), train_time[:, 1], label="RT")
+    plt.plot(np.arange(1,51), train_time[:, 0], label="Decision Tree")
+    plt.plot(np.arange(1,51), train_time[:, 1], label="Random Tree")
     plt.xlabel("Leaf Size")
     plt.ylabel("Training Time")
     plt.title("DT vs. RT: Training Time Across Leaf Sizes")
     plt.legend()
     plt.grid(True)
-    plt.savefig("chart5.png")
+    plt.savefig("Figure5.png")
