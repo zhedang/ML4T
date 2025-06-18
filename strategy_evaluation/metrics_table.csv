@@ -1,0 +1,5 @@
+Period,Strategy,Cumulative Return,Std Dev Daily Returns,Mean Daily Returns
+In-Sample,Manual,0.488187,0.013109,0.000875
+In-Sample,Benchmark,0.012325,0.017041,0.000169
+Out-of-Sample,Manual,0.189667,0.007798,0.000376
+Out-of-Sample,Benchmark,-0.083579,0.0085,-0.000137

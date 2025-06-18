@@ -1,5 +1,5 @@
 <pre>--- Summary ---
-Tests passed: 18 out of 18
+Tests passed: 15 out of 18
 
 --- Details ---
 Test #0: passed 
@@ -14,10 +14,40 @@ Test #8: passed
 Test #9: passed 
 Test #10: passed 
 Test #11: passed 
-Test #12: passed 
+Test #12: failed 
+Description: Test Case 05: Bagging (group: BagLearner)
+IncorrectOutput: Test failed on one or more output criteria.
+  Inputs:
+    data file: simple.csv
+    permutation: [20 49  8 39 33 34 40 11 44 13 24 10 38 12 19 45 15 32 27 35 41  0 23  5
+  7  9  6 47 37 28 18 29 46 26 21 31 16  1 43  3  2  4 36 17 30 42 48 22
+ 14 25]
+  Failures:
+    Out-of-sample correlation for 20 bags is not greater than for 1 bag. 20 bags:0.9956834224735787, 1 bag:1.0
+
 Test #13: passed 
-Test #14: passed 
-Test #15: passed 
+Test #14: failed 
+Description: Test Case 07: Bagging (group: BagLearner)
+IncorrectOutput: Test failed on one or more output criteria.
+  Inputs:
+    data file: simple.csv
+    permutation: [37 46  8  9 31 27 21 35 43 42  7 13 14 45  1 47  6 38 22 26 10 41 11 23
+ 17 39 24 44 19 48 32  3  4 40 25  2 49 15 34 20 28  5  0 12 29 36 30 18
+ 16 33]
+  Failures:
+    Out-of-sample correlation for 20 bags is not greater than for 1 bag. 20 bags:0.9807698569301131, 1 bag:0.9999999999999998
+
+Test #15: failed 
+Description: Test Case 08: Bagging (group: BagLearner)
+IncorrectOutput: Test failed on one or more output criteria.
+  Inputs:
+    data file: simple.csv
+    permutation: [47 15 11 29  2  1 40 26 17 28 41 18 48 30 24 44 22 42 35  9 19 34  0 31
+ 12 20 21 33 25  7 23 16 27 36 39 43  5  3 14  4 37  8 13 32 10 38 45  6
+ 46 49]
+  Failures:
+    Out-of-sample correlation for 20 bags is not greater than for 1 bag. 20 bags:0.9933535493202823, 1 bag:1.0
+
 Test #16: passed 
 Test #17: passed 
 </pre>
